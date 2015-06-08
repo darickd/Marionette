@@ -1,0 +1,393 @@
+{
+	"Marionette" : [
+		{
+			"file" : "Operations.vwx",
+			"node" : [
+				{
+					"name" : "Transform2",
+					"description" : "This node will transform a 2D object or Vec2",
+					"in" : [
+						{
+							"name" : "input",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						},
+						{
+							"name" : "translate",
+							"description" : "",
+							"type" : "",
+							"default value" : "(0,0)"
+						},
+						{
+							"name" : "scale",
+							"description" : "",
+							"type" : "",
+							"default value" : "(1,1)"
+						},
+						{
+							"name" : "rotate",
+							"description" : "",
+							"type" : "",
+							"default value" : "0"
+						},
+						{
+							"name" : "anchor",
+							"description" : "",
+							"type" : "",
+							"default value" : "None"
+						}
+					],
+					"oip" : [],
+					"out" : [
+						{
+							"name" : "output",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t@Marionette.NodeDefinition\r\tclass Params(metaclass = Marionette.OrderedClass):\r\t\tthis = Marionette.Node( 'Transform2' )\r\t\n\t\tthis.SetDescription( \"This node will transform a 2D object or Vec2\")\r\t\tinput = Marionette.PortIn( vs.Handle(0) )\t \r\t\ttranslate = Marionette.PortIn( (0,0) )  \r\t\tscale = Marionette.PortIn( (1,1) )  \r\t\trotate = Marionette.PortIn( 0 )\r\t\tanchor = Marionette.PortIn( None )\t\r\t\toutput = Marionette.PortOut()\t\r\t\r\tdef RunNode(self):  \r\t\tp = 0\t\r\t\ti = self.Params.input.value\r\t\tt = self.Params.translate.value\r\t\ts = self.Params.scale.value\r\t\tr = self.Params.rotate.value\r\t\tif type(i) is tuple:\r\t\t\ti[0] *= s[0]\r\t\t\ti[1] *= s[1]\r\t\t\ti[0] = i[0] * math.cos(r) - i[1] * math.sin(r)\r\t\t\ti[1] = i[0] * math.sin(r) + i[1] * math.cos(r)\r\t\t\ti[0] += t[0]\r\t\t\ti[1] += t[1]\t\t\t\r\t\telse:\r\t\n\t\t\tc = (0,0)\r\t\t\tif self.Params.anchor.value == None:\r\t\t\t\tc = vs.Get2DPt(i, 1)\t\t\t\t\t\t\t\r\t\t\tvs.HScale2D(i, c[0], c[1], s[0], s[1], True)\r\t\t\tvs.HRotate(i, c, r)\r\t\t\tvs.HMove(i, t[0], t[1])\r\t\t\tp = vs.GetParent(i)\t\r\t\tif p != 0:\t   \r\t\t\tvs.ResetObject(p) \r\t\tself.Params.output.value = i\t\r\t\t\t"
+				},
+				{
+					"name" : "Set Plane",
+					"description" : "This node will set the working plane for planar objects, if Custom is chosen provide a matrix for the desired plane",
+					"in" : [
+						{
+							"name" : "obj",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						},
+						{
+							"name" : "mat",
+							"description" : "",
+							"type" : "",
+							"default value" : "(1,0,0,0,1,0,0,0,1,0,0,0)"
+						}
+					],
+					"oip" : [
+						{
+							"name" : "plane",
+							"description" : "",
+							"type" : "Popup",
+							"default index" : "0",
+							"default list" : "['Ground', 'Screen', 'Custom']"
+						}
+					],
+					"out" : [
+						{
+							"name" : "output",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t@Marionette.NodeDefinition\r\n\tclass Params(metaclass = Marionette.OrderedClass):\r\n\t\tthis = Marionette.Node( 'Set Plane' )\r\n\t\tthis.SetDescription( \"This node will set the working plane for planar objects, if Custom is chosen provide a matrix for the desired plane\")\r\n\t\tplane = Marionette.OIPControl( 'plane', Marionette.WidgetType.Popup, 0, ['Ground', 'Screen', 'Custom'])\r\n\t\tobj = Marionette.PortIn( vs.Handle(0) ) \r\n\t\tmat = Marionette.PortIn( (1,0,0,0,1,0,0,0,1,0,0,0) )\t\t\t\r\n\t\toutput = Marionette.PortOut()\t\r\n\t\t\r\n\tdef RunNode(self):  \r\n\t\tplane = self.Params.plane.value\r\n\t\tobj = self.Params.obj.value\r\n\t\tmat = self.Params.mat.value\r\n\t\t\r\n\t\tif obj != vs.Handle(0):\r\n\t\t\tif plane == 0:\r\n\t\t\t\tvs.SetPlanarRefIDToGround(obj)\r\n\t\t\telif plane == 1:\r\n\t\t\t\tvs.SetPlanarRef(obj, 0)\r\n\t\t\telse:\t\t\r\n\t\t\t\tu = (mat[0], mat[1], mat[2])\r\n\t\t\t\tv = (mat[3], mat[4], mat[5])\r\n\t\t\t\tw = (mat[6], mat[7], mat[8])\r\n\t\t\t\toffset = (mat[9], mat[10], mat[11])\r\n\t\t\t\tvs.SetEntityMatrixN(obj, u, v, w, offset)\r\n\t\t\r\n\t\tself.Params.output.value = obj\t"
+				},
+				{
+					"name" : "Scale",
+					"description" : "This node will scale an object or vec3 by (sx,sy,sz)",
+					"in" : [
+						{
+							"name" : "input",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						},
+						{
+							"name" : "s",
+							"description" : "",
+							"type" : "",
+							"default value" : "(1,1,1)"
+						}
+					],
+					"oip" : [],
+					"out" : [
+						{
+							"name" : "output",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t@Marionette.NodeDefinition\r\t\n\tclass Params(metaclass = Marionette.OrderedClass):\r\t\n\t\tthis = Marionette.Node( 'Scale' )\r\t\n\t\tthis.SetDescription( \"This node will scale an object or vec3 by (sx,sy,sz)\")\r\t\n\t\tinput = Marionette.PortIn( vs.Handle(0) )\t\t \r\t\n\t\ts = Marionette.PortIn( (1,1,1) ) \t\t\r\t\n\t\toutput = Marionette.PortOut()\t\r\t\n\t\r\t\n\tdef RunNode(self):  \r\t\n\t\ts = self.Params.s.value\r\t\n\t\ti = self.Params.input.value\r\t\n\t\to = (0,0,0)\r\t\n\t\tif type(i) is tuple:\r\t\n\t\t\to[0] = i[0] * s[0]\r\t\n\t\t\to[1] = i[1] * s[1]\r\t\n\t\t\to[2] = i[2] * s[2]\t\r\t\n\t\t\tself.Params.output.value = o\r\t\n\t\telse:\t\r\t\n\t\t\tt = vs.GetTypeN(i)\t\t\t\r\t\n\t\t\tif t == 113 or t == 84 or t == 24:\r\t\n\t\t\t\t((x,y),z) = vs.Get3DCntr(i)\r\t\n\t\t\t\tvs.HScale3D(i, x, y, z, s[0], s[1], s[2])\t\t\t\r\t\n\t\t\telse:\r\t\n\t\t\t\td = vs.HCenter(i)\r\t\n\t\t\t\tvs.HScale2D(i, d[0], d[1], s[0], s[1], True)\r\t\n\t\t\tself.Params.output.value = i\t\t\r\t\n\t\t\t\r\t\n\t\t\t"
+				},
+				{
+					"name" : "Orient",
+					"description" : "Rotate the referenced 3D object using the given 3D orientation vector.",
+					"in" : [
+						{
+							"name" : "obj",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						},
+						{
+							"name" : "orientation",
+							"description" : "",
+							"type" : "",
+							"default value" : "(0,0,0)"
+						}
+					],
+					"oip" : [],
+					"out" : [
+						{
+							"name" : "obj",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t@Marionette.NodeDefinition\r\n\tclass Params(metaclass = Marionette.OrderedClass):\r\n\t\tthis = Marionette.Node( \"Orient\" ) \r\n\t\tthis.SetDescription(\"Rotate the referenced 3D object using the given 3D orientation vector.\")\r\n\t\tinObj = Marionette.PortIn( vs.Handle(0), 'obj' )\r\n\t\torientation = Marionette.PortIn( (0,0,0) )\r\n\t\tobj = Marionette.PortOut()\r\n\t\tthis.SetLinksObjects()\r\n\t\r\n\tdef RunNode(self):\r\n\t\tinObj = self.Params.inObj.value\r\n\t\torientation = self.Params.orientation.value\r\n\t\r\n\t\tdx = orientation[0]\r\n\t\tdy = orientation[1]\r\n\t\tdz = orientation[2]\r\n\t\tlen = math.sqrt( dx * dx + dy * dy + dz * dz )\r\n\t\t\r\n\t\trotZ = math.degrees(math.atan2(dy, dx)) + 90\r\n\t\trotX = math.degrees(math.acos(dz/len)) \r\n\t\trotY = 0\r\n\t\tp = vs.Get3DCntr(inObj)\t\r\n\t\tstart = (p[0][0], p[0][1], p[1])\r\n\t\tvs.Set3DRot(inObj, rotX, rotY, rotZ, start[0], start[1], start[2])\r\n\t\r\n\t\tself.Params.obj.value = inObj"
+				},
+				{
+					"name" : "Move",
+					"description" : "This node will move an object or vec3 by (dx,dy,dz)",
+					"in" : [
+						{
+							"name" : "input",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						},
+						{
+							"name" : "d",
+							"description" : "",
+							"type" : "",
+							"default value" : "0"
+						}
+					],
+					"oip" : [],
+					"out" : [
+						{
+							"name" : "output",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t@Marionette.NodeDefinition\r\tclass Params(metaclass = Marionette.OrderedClass):\r\t\tthis = Marionette.Node( 'Move' )\r\t\n\t\tthis.SetDescription( \"This node will move an object or vec3 by (dx,dy,dz)\")\r\t\tinput = Marionette.PortIn( vs.Handle(0) )\t \r\t\td = Marionette.PortIn( 0 ) \t\t\r\t\toutput = Marionette.PortOut()\t\r\t\r\tdef RunNode(self):  \r\t\td = self.Params.d.value\r\t\n\t\ti = self.Params.input.value\r\t\n\t\to = (0,0,0)\r\t\tif type(i) is tuple:\r\t\t\to[0] = i[0] + d[0]\r\t\t\to[1] = i[1] + d[1]\r\t\n\t\t\to[2] = i[2] + d[2]\t\r\t\n\t\t\tself.Params.output.value = o\r\t\telse:\t\t\r\t\t\tvs.Move3DObj(i, d[0], d[1], d[2])\t\t\t\r\t\t\tself.Params.output.value = i\t\r\t\t\t"
+				},
+				{
+					"name" : "Ungroup",
+					"description" : "Decomposes the reference group into component objects.\\n' 'Note: When Ungroup is run, any selected group objects will be destroyed, reverting to the original component objects.",
+					"in" : [
+						{
+							"name" : "group",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						}
+					],
+					"oip" : [],
+					"out" : [
+						{
+							"name" : "objs",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t@Marionette.NodeDefinition\r\t\n\tclass Params(metaclass = Marionette.OrderedClass):\r\t\n\t\tthis = Marionette.Node( \"Ungroup\" )\r\t\n\t\tthis.SetDescription( 'Decomposes the reference group into component objects.\\n' \r\t\n\t\t'Note: When Ungroup is run, any selected group objects will be destroyed, reverting to the original component objects.')\r\t\n\t\tgroup = Marionette.PortIn( vs.Handle(0) )\r\t\n\t\tobjs = Marionette.PortOut()\r\t\n\t\r\t\n\t\t\r\t\n\tdef RunNode(self):\r\t\n\t\th = self.Params.group.value\r\t\n\t\tif vs.GetTypeN(h) == 11:\r\t\n\t\t\tself.Params.objs.value = vs.HUngroup(h)\r\t\n\t\telse: \r\t\n\t\t\tself.Params.objs.value = h\r\t\n\t"
+				},
+				{
+					"name" : "Group",
+					"description" : "This node adds objects to a group. If no group is supplied, a new one is automatically created.\\n' )inGroup = Marionette.PortIn( vs.Handle(0), 'group",
+					"in" : [
+						{
+							"name" : "group",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						},
+						{
+							"name" : "handle",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						}
+					],
+					"oip" : [],
+					"out" : [
+						{
+							"name" : "group",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t@Marionette.NodeDefinition\r\t\n\tclass Params(metaclass = Marionette.OrderedClass):\r\t\n\t\tthis = Marionette.Node( \"Group\" )\r\t\n\t\tthis.SetDescription( 'This node adds objects to a group. If no group is supplied, a new one is automatically created.\\n' )\r\t\n\t\tinGroup = Marionette.PortIn( vs.Handle(0), 'group' )\r\t\n\t\thandle = Marionette.PortInLists( vs.Handle(0) ) \r\t\n\t\tgroup = Marionette.PortOut()\r\t\n\t\tthis.SetLinksObjects()\r\t\n\t\r\t\n\tdef RunNode(self):\r\t\n\t\toriginal = self.Params.inGroup.value\r\t\n\t\th = self.Params.handle.value\r\t\n\t\r\t\n\t\tgrp = vs.BeginGroupN(original)\r\t\n\t\tfor i in h:\r\t\n\t\t\tvs.CreateDuplicateObject(i, None)\t\t\t\t\r\t\n\t\tvs.EndGroup()\t\r\t\n\t\tself.Params.group.value = grp\r\t\n\t\r\t\n\t\tfor i in h:\r\t\n\t\t\tvs.Marionette_DisposeObj(i)"
+				},
+				{
+					"name" : "Get Objects",
+					"description" : "Returns objects in a group-like object.",
+					"in" : [
+						{
+							"name" : "group",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						}
+					],
+					"oip" : [],
+					"out" : [
+						{
+							"name" : "objs",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t\r\t\n\t@Marionette.NodeDefinition\r\t\n\tclass Params(metaclass = Marionette.OrderedClass):\r\t\n\t\tthis = Marionette.Node( \"Get Objects\" )\r\t\n\t\tthis.SetDescription( 'Returns objects in a group-like object.' )\r\t\n\t\tgroup = Marionette.PortIn( vs.Handle(0) )\r\t\n\t\tobjs = Marionette.PortOut()\r\t\n\t\t\r\t\n\tdef RunNode(self):\r\t\n\t\tg = self.Params.group.value\t\r\t\n\t\th = vs.FInGroup(g)\r\t\n\t\tobjs = [h]\r\t\n\t\th = vs.NextObj(h)\r\t\n\t\twhile h != vs.Handle(0):\r\t\n\t\t\tobjs.append(h)\r\t\n\t\t\th = vs.NextObj(h)\r\t\n\t\t\t\r\t\n\t\tself.Params.objs.value = objs\r\t\n\t\t"
+				},
+				{
+					"name" : "Convert to Mesh",
+					"description" : "Converts a group of 3D polygons into a mesh network.\\n",
+					"in" : [
+						{
+							"name" : "group",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						}
+					],
+					"oip" : [],
+					"out" : [
+						{
+							"name" : "group",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t\r\t\n\t@Marionette.NodeDefinition\r\t\n\tclass Params(metaclass = Marionette.OrderedClass):\r\t\n\t\tthis = Marionette.Node( \"Convert to Mesh\" )\r\t\n\t\tthis.SetDescription( 'Converts a group of 3D polygons into a mesh network.\\n' )\r\t\n\t\tgroup = Marionette.PortIn( vs.Handle(0) )\r\t\n\t\tgroup_ = Marionette.PortOut('group')\r\t\n\t\t\r\t\n\tdef RunNode(self):\r\t\n\t\th = self.Params.group.value\r\t\n\t\tnew_h = vs.GroupToMesh(h)\r\t\n\t\tself.Params.group_.value = new_h\r\t\n\t\t"
+				},
+				{
+					"name" : "Planar Boolean",
+					"in" : [
+						{
+							"name" : "in0",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						},
+						{
+							"name" : "in1",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						}
+					],
+					"oip" : [
+						{
+							"name" : "operation",
+							"description" : "",
+							"type" : "Popup",
+							"default index" : "0",
+							"default list" : "['Add', 'Subtract', 'Intersect']"
+						}
+					],
+					"out" : [
+						{
+							"name" : "out",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t@Marionette.NodeDefinition\r\t\n\tclass Params(metaclass = Marionette.OrderedClass):\r\t\n\t\tthis = Marionette.Node( \"Planar Boolean\" ) \r\t\n\t\tin0 = Marionette.PortIn( vs.Handle(0) )\r\t\n\t\tin1 = Marionette.PortIn( vs.Handle(0) )\r\t\n\t\top = Marionette.OIPControl( 'operation', Marionette.WidgetType.Popup, 0, ['Add', 'Subtract', 'Intersect'])\r\t\n\t\tout = Marionette.PortOut()\r\t\n\t\tthis.SetLinksObjects()\r\t\n\t\tthis.SetListAbsorb()\r\t\n\t\r\t\n\tdef RunNode(self):\r\t\n\t\toutput = []\t\t\r\t\n\t\tin0 = self.Params.in0.value\r\t\n\t\tif type(self.Params.in0.value) != list:\t\t\r\t\n\t\t\tin0 = [self.Params.in0.value]\r\t\n\t\r\t\n\t\tfor blank in in0:\t\t\r\t\n\t\t\tif blank != 0:\r\t\n\t\t\t\tvs.Marionette_DisposeObj(blank)\r\t\n\t\t\t\tblank = vs.CreateDuplicateObject(blank, vs.Handle(0))\r\t\n\t\t\t\tif type(self.Params.in1.value) != list:\r\t\n\t\t\t\t\tin1 = [self.Params.in1.value]\r\t\n\t\t\t\telse:\r\t\n\t\t\t\t\tin1 = self.Params.in1.value\t\t\r\t\n\t\t\t\tfor tool in in1:\t\t\t\t\r\t\n\t\t\t\t\tvs.Marionette_DisposeObj(tool)\r\t\n\t\t\t\t\ttool = vs.CreateDuplicateObject(tool, vs.Handle(0))\r\t\n\t\t\t\t\tnewObj = vs.Handle(0)\t\t\t\t\r\t\n\t\t\t\t\t#Add\r\t\n\t\t\t\t\tif self.Params.op.value == 0:\t\r\t\n\t\t\t\t\t\tnewObj = vs.AddSurface(blank, tool)\r\t\n\t\t\t\t\t#Subtract\t\t\r\t\n\t\t\t\t\telif self.Params.op.value == 1:\t\t\t\t\t\r\t\n\t\t\t\t\t\tnewObj = vs.ClipSurfaceN(blank, tool)\t\t\t\t\t\t\r\t\n\t\t\t\t\t#Intersect\r\t\n\t\t\t\t\telif self.Params.op.value == 2:\r\t\n\t\t\t\t\t\tnewObj = vs.IntersectSurface(blank, tool)\r\t\n\t\t\t\t\t\t\t\r\t\n\t\t\t\t\tif newObj != 0 and newObj != None and newObj != tool:\r\t\n\t\t\t\t\t\tvs.Marionette_DisposeObj(tool)\r\t\n\t\t\t\t\t\tvs.Marionette_DisposeObj(blank)\r\t\n\t\t\t\t\t\tblank = newObj\t\r\t\n\t\t\tif blank != vs.Handle(0):\r\t\n\t\t\t\toutput.append(blank)\r\t\n\t\tself.Params.out.value = output\r\t\n\t"
+				},
+				{
+					"name" : "Delete",
+					"in" : [
+						{
+							"name" : "obj",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle( 0 )"
+						}
+					],
+					"oip" : [],
+					"out" : [],
+					"script" : "\t@Marionette.NodeDefinition\r\tclass Params(metaclass = Marionette.OrderedClass):\r\t\tthis = Marionette.Node( 'Delete' ) \r\t\tobj = Marionette.PortIn( vs.Handle( 0 ) )\t\r\t\r\tdef RunNode(self):\r\t\tvs.Marionette_DisposeObj(self.Params.obj.value)"
+				},
+				{
+					"name" : "Duplicate Object",
+					"in" : [
+						{
+							"name" : "obj",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle( 0 )"
+						},
+						{
+							"name" : "n",
+							"description" : "",
+							"type" : "",
+							"default value" : "0"
+						}
+					],
+					"oip" : [],
+					"out" : [
+						{
+							"name" : "objs",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t@Marionette.NodeDefinition\r\tclass Params(metaclass = Marionette.OrderedClass):\r\t\tthis = Marionette.Node( 'Duplicate Object' ) \r\t\tobj = Marionette.PortIn( vs.Handle( 0 ) )\r\t\n\t\tn = Marionette.PortIn( 0 )\r\t\n\t\tobjs = Marionette.PortOut()\r\t\n\t\tthis.SetLinksObjects()\r\t\r\tdef RunNode(self):\r\t\n\t\tobj = self.Params.obj.value\r\t\n\t\tn = self.Params.n.value\r\t\n\t\tobjs = [obj]\r\t\n\t\tif obj != vs.Handle(0):\r\t\t\tfor i in range(n):\r\t\n\t\t\t\tobjs.append( vs.CreateDuplicateObject(obj, vs.Handle(0)) )\r\t\n\t\tself.Params.objs.value = objs"
+				},
+				{
+					"name" : "Rotate",
+					"description" : "This node will rotate an object by (rx,ry,rz) around it's center",
+					"in" : [
+						{
+							"name" : "input",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle(0)"
+						},
+						{
+							"name" : "rVec",
+							"description" : "",
+							"type" : "",
+							"default value" : "(0,0,0)"
+						},
+						{
+							"name" : "center",
+							"description" : "",
+							"type" : "",
+							"default value" : "(0,0,0)"
+						}
+					],
+					"oip" : [],
+					"out" : [
+						{
+							"name" : "output",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t@Marionette.NodeDefinition\r\n\tclass Params(metaclass = Marionette.OrderedClass):\r\n\t\tthis = Marionette.Node( 'Rotate' )\r\n\t\tthis.SetDescription(\"This node will rotate an object by (rx,ry,rz) around it's center\")\r\n\t\tinput = Marionette.PortIn( vs.Handle(0) )\t\t\t\r\n\t\trVec = Marionette.PortIn( (0,0,0) )\r\n\t\tcenter = Marionette.PortIn( (0,0,0) )\t  \r\n\t\toutput = Marionette.PortOut() \r\n\t \r\n\tdef RunNode(self):  \r\n\t\tr = self.Params.rVec.value\t\t   \r\n\t\tcenter = self.Params.center.value\t\t   \r\n\t\tobj = self.Params.input.value\t \r\n\t\tpath = vs.GetCustomObjectPath(obj)\r\n\t\toffset = (0,0,0)\r\n\t\tif path != vs.Handle(0):  \r\n\t\t\t(ok, offset, rotationXAngle, rotationYAngle, rotationZAngle) = vs.GetEntityMatrix(obj)\t\t\t\t  \r\n\t\t\tobj = path\t\t\t\t\t\t   \r\n\t\tplnID = 0;\r\n\t\t(planar, plnID) = vs.IsPlanarObj(obj, plnID)\r\n\t\tcx = center[0] - offset[0]\r\n\t\tcy = center[1] - offset[1]\r\n\t\tcz = center[2] - offset[2]   \r\n\t\tif planar:\t\t\r\n\t\t\tvs.HRotate(obj, (cx, cy), r[2])\r\n\t\telse:\t\t\t\t\t\t\t\t\t\r\n\t\t\tvs.Set3DRot(obj, r[0], r[1], r[2], cx, cy, cz)  \r\n\t\t\t\t\t \r\n\t\tself.Params.output.value = obj \r\n\t"
+				},
+				{
+					"name" : "Copy",
+					"description" : "Make a copy of an object.",
+					"in" : [
+						{
+							"name" : "objIn",
+							"description" : "",
+							"type" : "",
+							"default value" : "vs.Handle( 0 )"
+						}
+					],
+					"oip" : [],
+					"out" : [
+						{
+							"name" : "orig",
+							"description" : "",
+							"type" : ""
+						},
+						{
+							"name" : "copy",
+							"description" : "",
+							"type" : ""
+						}
+					],
+					"script" : "\t@Marionette.NodeDefinition\r\tclass Params(metaclass = Marionette.OrderedClass):\r\t\tthis = Marionette.Node( 'Copy' ) \r\n\t\tthis.SetDescription(\"Make a copy of an object.\")\r\t\tobjIn = Marionette.PortIn( vs.Handle( 0 ) )\t\r\t\torig = Marionette.PortOut()\r\t\tcopy = Marionette.PortOut()\r\t\tthis.SetLinksObjects()\r\t\r\tdef RunNode(self):\r\t\tself.Params.orig.value = self.Params.objIn.value\t\t\r\t\tif self.Params.copy.GetConnected() == True: \t\t\t\r\t\t\tself.Params.copy.value = vs.HDuplicate(self.Params.objIn.value, 0, 0)\r\t\telse:\r\t\t\tself.Params.copy.value = vs.Handle(0)"
+				}
+			]
+		}
+	]
+}
