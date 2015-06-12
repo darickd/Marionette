@@ -5,7 +5,7 @@
 			"node" : [
 				{
 					"name" : "Transform2",
-					"description" : "This node will transform a 2D object or Vec2",
+					"description" : "This node will transform a 2D object or Vec2 test text",
 					"in" : [
 						{
 							"name" : "input",
